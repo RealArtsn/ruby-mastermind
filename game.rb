@@ -4,7 +4,9 @@ module Inputs
   def receive_numbers
     loop do
       puts 'Enter a four digits between 1 and 6:'
+      # extract only numbers from input
       input = gets.gsub(/[^1-6]/, '').split('').map(&:to_i)
+      # return from loop if input is correct length
       return input unless input.length != 4
     end
   end
@@ -41,6 +43,11 @@ class Board
   end
   attr_reader :rows, :code
 
+  # check if input code is winner
+  def winner?(in_code)
+    code == in_code
+  end
+
   # override string representation to return board
   def to_s
     string = ''
@@ -62,6 +69,7 @@ class Codemaker
     puts "Code set to #{code}."
     code
   end
+
   # define generate_code method
 end
 
@@ -93,6 +101,12 @@ class Round
       guess = codebreaker.prompt_guess
       row.update(guess)
       puts board
+      # break and print winner if guess is correct
+      winner = board.winner?(guess)
+      next unless winner
+
+      puts 'Codebreaker guessed the code!'
+      break
     end
   end
 
