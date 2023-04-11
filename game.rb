@@ -16,20 +16,42 @@ end
 class Row
   def initialize
     @code = [0, 0, 0, 0]
-    @key = {}
+    @key = { num_match: 0, position_match: 0 }
   end
   attr_reader :code, :key
 
   # update row to match guess
-  def update(guess)
+  def update_code(guess)
     guess.each_with_index do |n, idx|
       code[idx] = n
     end
   end
 
+  def update_key(goal)
+    matched = []
+    unique_guess = code.uniq
+    goal.each_with_index do |goal_num, idx|
+      guess_num = code[idx]
+      # tally positional matches
+      if guess_num == goal_num
+        key[:position_match] += 1
+        next
+      end
+      matched.push(guess_num)
+      # tally other non-positional matches
+      if matched.count(guess_num) <= goal.count(guess_num)
+        key[:num_match] += 1
+      end
+    end
+  end
+
   def to_s
     # return string representation of array, replacing commas and brackets
-    "#{code}\n".gsub(',', '').gsub(/[\[|\]|]/, '|')
+    key_s = ''
+    key_s += 'i' * key[:num_match]
+    key_s += 'I' * key[:position_match]
+    "#{code} #{key_s}\n".gsub(',', '').gsub(/[\[|\]|]/, '|')
+
   end
 end
 
@@ -70,7 +92,14 @@ class Codemaker
     code
   end
 
-  # define generate_code method
+  # generate a code
+  def generate_code
+    generated = ''
+    for _ in 1..4
+      generated += (rand(6) + 1).to_s
+    end
+    generated.split('').map &:to_i
+  end
 end
 
 # 'player' creating the code
@@ -95,24 +124,26 @@ class Round
   attr_reader :codemaker, :codebreaker, :board
 
   def start
-    set_board_code
+    set_board_code(codemaker.generate_code)
     # iterate through rows until a correct answer is provided
+    puts board
     board.rows.each do |row|
       guess = codebreaker.prompt_guess
-      row.update(guess)
+      row.update_code(guess)
+      row.update_key(board.code)
       puts board
       # break and print winner if guess is correct
       winner = board.winner?(guess)
       next unless winner
 
       puts 'Codebreaker guessed the code!'
-      break
+      return
     end
+    puts "You lose! The code was #{board.code.to_s.gsub(',','')}."
   end
 
   # prompt player for code and set board for game
-  def set_board_code
-    code = codemaker.prompt_code
+  def set_board_code(code)
     code.each_with_index do |n, idx|
       board.code[idx] = n
     end
