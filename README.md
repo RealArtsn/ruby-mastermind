@@ -1,6 +1,6 @@
 # ruby-mastermind
 
-This is my implementation of the Mastermind project in the Odin Project Ruby course.
+This is my command-line implementation of the Mastermind project in the Odin Project Ruby course.
 
 A secret four-digit number will be generated and the player must guess the code to win within 12 tries.
 
